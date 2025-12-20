@@ -1,0 +1,17 @@
+# Python相关
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+# 日志文件
+*.log
+# 编辑器配置
+.idea/
+.vscode/
+*.swp
+*.swo
