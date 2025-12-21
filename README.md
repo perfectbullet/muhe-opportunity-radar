@@ -1,4 +1,7 @@
 # Muhe Opportunity Radar
+
+> 🎯 **快速开始？** 查看 [快速启动指南 QUICKSTART.md](QUICKSTART.md)
+
 ## 项目简介
 Muhe Opportunity Radar（炑禾机会雷达）是一款基于信息聚合与AI分析的投资机会挖掘工具，核心功能为聚合多源投资相关数据，通过AI模型分析识别潜在投资机会并进行风险提示。
 
@@ -9,22 +12,53 @@ Muhe Opportunity Radar（炑禾机会雷达）是一款基于信息聚合与AI�
    - 巴菲特（价值投资）、格雷厄姆（量化价值）、索罗斯（宏观对冲）
    - 彼得·林奇（成长股）、利弗莫尔（技术分析）、达利欧（全天候策略）
    - 约翰·聂夫（低市盈率）、博格（指数投资）、伊坎（激进投资）、费雪（成长股）
-4. **可视化展示**：提供投资机会清单、数据趋势图等可视化功能
+4. **📊 Gradio 前端界面**：炫酷的 Web UI，支持：
+   - 单一视角分析
+   - 多视角对比分析
+   - 历史记录查询和搜索
+   - 统计信息展示
+5. **💾 历史记录管理**：MongoDB 存储分析历史，支持回溯和趋势分析
 ## 快速启动
 
 ### 环境依赖
 - Python 3.8+
 - 依赖包：requirements.txt
+- MongoDB（可选，用于历史记录）
 
 ### 安装步骤
 1. 克隆仓库：`git clone <远程仓库地址>`
-2. 安装依赖：`pip install -r requirements.txt`
-3. 配置环境变量：创建 `.env` 文件，配置API密钥
+2. 创建虚拟环境（推荐）：
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Linux/Mac
+   # 或
+   .venv\Scripts\activate     # Windows
    ```
-   DEEPSEEK_API_KEY=your_deepseek_api_key
+3. 安装依赖：`pip install -r requirements.txt`
+4. 配置环境变量：创建 `.env` 文件，配置API密钥
+   ```bash
+   # LLM 配置（选择一个或多个）
+   SILICONFLOW_API_KEY=your_siliconflow_key
+   DEEPSEEK_API_KEY=your_deepseek_key
+   QWEN_API_KEY=your_qwen_key
+   
+   # 数据源
    TUSHARE_TOKEN=your_tushare_token
+   
+   # MongoDB（可选）
+   MONGODB_URI=mongodb://localhost:27017/
+   MONGODB_DB_NAME=muhe_opportunity_radar
    ```
-4. 启动服务：`streamlit run app.py` 或 `python app.py`
+5. 启动服务：
+   ```bash
+   # 方法1：使用启动脚本（推荐）
+   start.bat          # Windows
+   ./start.sh         # Linux/Mac
+   
+   # 方法2：直接运行
+   python app.py
+   ```
+6. 访问界面：浏览器打开 http://localhost:7860
 
 ## 多投资理念分析功能 🎯
 
@@ -46,7 +80,26 @@ Muhe Opportunity Radar（炑禾机会雷达）是一款基于信息聚合与AI�
 
 ### 使用方法
 
-#### 1. 命令行测试
+#### 1. Web 界面（推荐）
+```bash
+# 启动 Gradio 应用
+python app.py
+# 或使用启动脚本
+start.bat  # Windows
+./start.sh # Linux/Mac
+
+# 访问 http://localhost:7860
+```
+
+**界面功能**：
+- **单一视角分析**：选择一位投资大师，输入材料，获得分析
+- **多视角对比**：同时从多位大师角度分析，生成对比总结
+- **历史记录**：查看所有分析历史，支持搜索和筛选
+- **统计信息**：查看分析统计数据
+
+详细使用说明见 [Gradio 界面使用指南](docs/gradio_guide.md)
+
+#### 2. 命令行测试
 ```python
 # 测试投资者画像管理
 python analysis/investor_profiles.py
@@ -97,6 +150,24 @@ result = quick_analyze(
 )
 ```
 
+#### 4. 历史记录查询
+```python
+from storage.db_manager import AnalysisRecordManager
+
+# 初始化管理器
+manager = AnalysisRecordManager()
+
+# 查询最近10条记录
+recent = manager.get_recent_analyses(limit=10)
+
+# 搜索包含关键词的记录
+results = manager.search_analyses("茅台", limit=20)
+
+# 获取统计信息
+stats = manager.get_statistics()
+print(f"总分析次数: {stats['total_count']}")
+```
+
 ### 功能特点
 - ✅ **10位投资大师画像**：每位大师都有详细的投资理念、决策标准、分析焦点
 - ✅ **智能提示词工程**：根据投资者特点自动生成专业分析提示词
@@ -106,11 +177,20 @@ result = quick_analyze(
 
 ### 文件结构
 ```
+├── app.py                          # 🆕 Gradio 前端应用（主入口）
+├── start.bat / start.sh            # 🆕 启动脚本
 ├── data/
 │   └── investor_profiles.json      # 投资者画像配置库
 ├── analysis/
 │   ├── investor_profiles.py        # 投资者画像管理模块
 │   └── perspective_analyzer.py     # 多视角分析引擎
+├── storage/                        # 🆕 数据存储模块
+│   ├── __init__.py
+│   └── db_manager.py              # MongoDB 管理器
+├── docs/
+│   ├── gradio_guide.md            # 🆕 Gradio 界面使用指南
+│   ├── mongodb_integration.md     # MongoDB 集成文档
+│   └── multi_perspective_guide.md # 多视角分析指南
 └── scripts/
     └── test_multi_perspective.py   # 测试脚本
 ```

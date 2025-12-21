@@ -24,6 +24,14 @@ from pydantic import SecretStr
 
 from .investor_profiles import InvestorProfile, InvestorProfileManager
 
+# 导入数据库管理器
+try:
+    from storage.db_manager import AnalysisRecordManager
+    DB_MANAGER_AVAILABLE = True
+except ImportError:
+    DB_MANAGER_AVAILABLE = False
+    print("⚠️  数据库管理模块未找到，分析记录将不会保存")
+
 
 class PerspectiveAnalyzer:
     """多视角分析器 - 让AI以不同投资大师的视角分析材料"""
@@ -34,6 +42,7 @@ class PerspectiveAnalyzer:
         api_key: Optional[str] = None,
         model_name: Optional[str] = None,
         temperature: float = 0.7,
+        enable_db: bool = True,
     ):
         """
         初始化多视角分析器
@@ -43,6 +52,7 @@ class PerspectiveAnalyzer:
             api_key: API密钥，如果不提供则从环境变量读取
             model_name: 模型名称，如果不提供则使用默认模型
             temperature: 温度参数，控制输出的随机性
+            enable_db: 是否启用数据库保存功能
         """
 
         self.llm_provider = llm_provider.lower()
@@ -53,6 +63,15 @@ class PerspectiveAnalyzer:
 
         # 初始化LLM客户端
         self.llm = self._init_llm(api_key, model_name)
+        
+        # 初始化数据库管理器
+        self.db_manager = None
+        if enable_db and DB_MANAGER_AVAILABLE:
+            try:
+                self.db_manager = AnalysisRecordManager()
+            except Exception as e:
+                print(f"⚠️  数据库管理器初始化失败: {e}")
+                self.db_manager = None
 
     def _init_llm(self, api_key: Optional[str], model_name: Optional[str]):
         """初始化LLM客户端"""
@@ -160,7 +179,7 @@ class PerspectiveAnalyzer:
             response = self.llm.invoke(messages)
             analysis_result = response.content
 
-            return {
+            result = {
                 "investor_id": investor_id,
                 "investor_name": profile.name,
                 "investor_title": profile.title,
@@ -170,6 +189,28 @@ class PerspectiveAnalyzer:
                 "holding_period": profile.holding_period,
                 "success": True,
             }
+            
+            # 保存到数据库
+            if self.db_manager:
+                try:
+                    self.db_manager.save_analysis(
+                        material=material,
+                        investor_id=investor_id,
+                        investor_name=profile.name,
+                        analysis_result=analysis_result,
+                        additional_context=additional_context,
+                        metadata={
+                            "investor_title": profile.title,
+                            "risk_tolerance": profile.risk_tolerance,
+                            "holding_period": profile.holding_period,
+                            "llm_provider": self.llm_provider,
+                            "temperature": self.temperature
+                        }
+                    )
+                except Exception as e:
+                    print(f"⚠️  保存分析记录时出错: {e}")
+            
+            return result
 
         except Exception as e:
             print(f"✗ 分析时出错: {e}")
@@ -274,12 +315,27 @@ class PerspectiveAnalyzer:
         except Exception as e:
             comparison_summary = f"生成对比总结时出错: {str(e)}"
 
-        return {
+        result = {
             "material": material,
             "investor_count": len(investor_ids),
             "analyses": analyses,
             "comparison_summary": comparison_summary,
         }
+        
+        # 保存对比分析到数据库
+        if self.db_manager:
+            try:
+                self.db_manager.save_comparison(
+                    material=material,
+                    investor_ids=investor_ids,
+                    analyses=analyses,
+                    comparison_summary=comparison_summary,
+                    additional_context=additional_context
+                )
+            except Exception as e:
+                print(f"⚠️  保存对比分析记录时出错: {e}")
+        
+        return result
 
     def get_available_investors(self) -> List[Dict]:
         """
