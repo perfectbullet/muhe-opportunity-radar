@@ -11,6 +11,15 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+# 加载环境变量
+try:
+    from dotenv import load_dotenv
+    env_path = project_root / '.env'
+    load_dotenv(dotenv_path=env_path)
+    print(f"✓ 已加载环境变量: {env_path}")
+except ImportError:
+    print("⚠️  python-dotenv 未安装，将直接使用系统环境变量")
+
 from analysis.investor_profiles import InvestorProfileManager, load_investor_profile
 from analysis.perspective_analyzer import PerspectiveAnalyzer, quick_analyze
 
@@ -55,13 +64,6 @@ def test_perspective_analyzer():
     print("测试 2: 多视角分析器")
     print("="*80)
     
-    # 检查是否配置了API密钥
-    api_key = os.getenv('DEEPSEEK_API_KEY')
-    if not api_key:
-        print("⚠️  未配置 DEEPSEEK_API_KEY，跳过LLM测试")
-        print("提示：请在 .env 文件中配置 DEEPSEEK_API_KEY=your_key")
-        return False
-    
     # 示例投资材料
     test_material = """
     【投资标的分析】茅台酒业
@@ -97,7 +99,7 @@ def test_perspective_analyzer():
     
     try:
         # 创建分析器
-        analyzer = PerspectiveAnalyzer(llm_provider="deepseek")
+        analyzer = PerspectiveAnalyzer(llm_provider="siliconflow")
         
         # 测试单一视角分析
         print("\n测试单一视角分析（巴菲特）：")
@@ -132,15 +134,15 @@ def test_perspective_analyzer():
         
         # 打印各投资者的分析
         for analysis in comparison['analyses']:
-            print(f"\n{'='*60}")
+            print("\n" + "="*60)
             print(f"{analysis['investor_name']} 的分析")
-            print(f"{'='*60}")
+            print("="*60)
             print(analysis['analysis'])
         
         # 打印对比总结
-        print(f"\n{'='*80}")
+        print("\n" + "="*80)
         print("综合对比总结")
-        print(f"{'='*80}")
+        print("="*80)
         print(comparison['comparison_summary'])
         
         print("\n✓ 多视角分析器测试通过")
@@ -158,11 +160,7 @@ def test_quick_analyze():
     print("\n" + "="*80)
     print("测试 3: 快速分析接口")
     print("="*80)
-    
-    api_key = os.getenv('DEEPSEEK_API_KEY')
-    if not api_key:
-        print("⚠️  未配置 DEEPSEEK_API_KEY，跳过此测试")
-        return False
+ 
     
     test_news = """
     【行业新闻】新能源汽车行业观察
@@ -187,7 +185,7 @@ def test_quick_analyze():
         result = quick_analyze(
             material=test_news,
             investor_id='lynch',
-            llm_provider='deepseek'
+            llm_provider='siliconflow'
         )
         
         print(result)
@@ -205,15 +203,8 @@ def interactive_demo():
     print("交互式多视角分析演示")
     print("="*80)
     
-    api_key = os.getenv('DEEPSEEK_API_KEY')
-    if not api_key:
-        print("\n⚠️  未配置 DEEPSEEK_API_KEY")
-        print("请在项目根目录创建 .env 文件，添加：")
-        print("DEEPSEEK_API_KEY=your_api_key_here")
-        return
-    
     try:
-        analyzer = PerspectiveAnalyzer(llm_provider="deepseek")
+        analyzer = PerspectiveAnalyzer(llm_provider="siliconflow")
         
         # 显示可用投资者
         print("\n可选的投资者角色：")
@@ -254,14 +245,14 @@ def interactive_demo():
         
         # 显示结果
         for analysis in comparison['analyses']:
-            print(f"\n{'='*80}")
+            print("\n" + "="*80)
             print(f"{analysis['investor_name']} 的分析")
-            print(f"{'='*80}")
+            print("="*80)
             print(analysis['analysis'])
         
-        print(f"\n{'='*80}")
+        print("\n" + "="*80)
         print("综合对比")
-        print(f"{'='*80}")
+        print("="*80)
         print(comparison['comparison_summary'])
         
     except KeyboardInterrupt:

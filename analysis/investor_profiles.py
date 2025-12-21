@@ -4,26 +4,31 @@
 """
 
 import json
-import os
 from typing import Dict, List, Optional
 from pathlib import Path
+from pydantic import BaseModel, Field
 
 
-class InvestorProfile:
-    """投资者画像类"""
+class InvestorProfile(BaseModel):
+    """投资者画像类（基于 Pydantic）"""
     
-    def __init__(self, profile_data: Dict):
-        self.id = profile_data.get('id')
-        self.name = profile_data.get('name')
-        self.name_en = profile_data.get('name_en')
-        self.title = profile_data.get('title')
-        self.investment_philosophy = profile_data.get('investment_philosophy')
-        self.core_principles = profile_data.get('core_principles', [])
-        self.analysis_focus = profile_data.get('analysis_focus', [])
-        self.decision_criteria = profile_data.get('decision_criteria', {})
-        self.risk_tolerance = profile_data.get('risk_tolerance')
-        self.holding_period = profile_data.get('holding_period')
-        self.prompt_template = profile_data.get('prompt_template')
+    id: str = Field(..., description="投资者唯一标识")
+    name: str = Field(..., description="投资者中文名")
+    name_en: str = Field(..., description="投资者英文名")
+    title: str = Field(..., description="投资者头衔/称号")
+    investment_philosophy: str = Field(..., description="投资哲学")
+    core_principles: List[str] = Field(default_factory=list, description="核心投资原则")
+    analysis_focus: List[str] = Field(default_factory=list, description="分析关注点")
+    decision_criteria: Dict = Field(default_factory=dict, description="决策标准")
+    risk_tolerance: str = Field(..., description="风险承受度")
+    holding_period: str = Field(..., description="持有期偏好")
+    prompt_template: Optional[str] = Field(None, description="提示词模板")
+    
+    class Config:
+        # 允许字段验证
+        validate_assignment = True
+        # 启用额外字段警告
+        extra = "allow"
     
     def get_system_prompt(self) -> str:
         """
@@ -69,19 +74,8 @@ class InvestorProfile:
             return f"{self.get_system_prompt()}\n\n分析材料：\n{material}"
     
     def to_dict(self) -> Dict:
-        """转换为字典格式"""
-        return {
-            'id': self.id,
-            'name': self.name,
-            'name_en': self.name_en,
-            'title': self.title,
-            'investment_philosophy': self.investment_philosophy,
-            'core_principles': self.core_principles,
-            'analysis_focus': self.analysis_focus,
-            'decision_criteria': self.decision_criteria,
-            'risk_tolerance': self.risk_tolerance,
-            'holding_period': self.holding_period,
-        }
+        """转换为字典格式（兼容旧接口）"""
+        return self.model_dump(exclude={'prompt_template'}, exclude_none=True)
     
     def __str__(self) -> str:
         return f"{self.name}（{self.name_en}）- {self.title}"
@@ -90,7 +84,7 @@ class InvestorProfile:
 class InvestorProfileManager:
     """投资者画像管理器"""
     
-    def __init__(self, profiles_path: Optional[str] = None):
+    def __init__(self, profiles_path: Optional[Path] = None):
         """
         初始化管理器
         
@@ -107,7 +101,7 @@ class InvestorProfileManager:
         self.load_profiles()
     
     def load_profiles(self):
-        """从JSON文件加载投资者画像"""
+        """从JSON文件加载投资者画像（使用 Pydantic 验证）"""
         try:
             if not self.profiles_path.exists():
                 raise FileNotFoundError(f"投资者画像文件不存在: {self.profiles_path}")
@@ -117,8 +111,13 @@ class InvestorProfileManager:
             
             investors = data.get('investors', [])
             for investor_data in investors:
-                profile = InvestorProfile(investor_data)
-                self.profiles[profile.id] = profile
+                # 使用 Pydantic 的模型验证
+                try:
+                    profile = InvestorProfile(**investor_data)
+                    self.profiles[profile.id] = profile
+                except Exception as e:
+                    print(f"⚠️  加载投资者 {investor_data.get('id', 'unknown')} 时出错: {e}")
+                    continue
             
             print(f"✓ 成功加载 {len(self.profiles)} 个投资者画像")
             
