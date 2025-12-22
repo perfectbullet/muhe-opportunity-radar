@@ -1,9 +1,30 @@
 # Muhe Opportunity Radar
 
-> 🎯 **快速开始？** 查看 [快速启动指南 QUICKSTART.md](QUICKSTART.md)
+> 🎯 **快速开始？** 
+> - Gradio 版本：查看 [快速启动指南 QUICKSTART.md](QUICKSTART.md)
+> - **🆕 Vue3 版本（推荐）**：查看 [Vue3 快速开始 QUICKSTART_VUE3.md](QUICKSTART_VUE3.md)
 
 ## 项目简介
 Muhe Opportunity Radar（炑禾机会雷达）是一款基于信息聚合与AI分析的投资机会挖掘工具，核心功能为聚合多源投资相关数据，通过AI模型分析识别潜在投资机会并进行风险提示。
+
+## 🆕 架构升级：Vue3 + FastAPI
+
+**项目已完成前后端分离架构升级！** 现提供两种部署方式：
+
+| 版本 | 技术栈 | 特点 | 推荐场景 |
+|------|--------|------|---------|
+| **Gradio 版** | Python Gradio | 快速部署，简单易用 | 快速测试、个人使用 |
+| **Vue3 版（推荐）** | Vue3 + FastAPI | 炫酷 UI、高性能、可扩展 | 生产环境、团队开发 |
+
+### Vue3 版本亮点 ✨
+- 🎨 **Naive UI 深色主题** - 科技感十足的现代化界面
+- 📊 **ECharts 数据可视化** - 丰富的图表展示
+- ⚡ **流式输出** - 打字机效果的实时分析
+- 🚀 **前后端分离** - 独立开发和部署
+- 📡 **RESTful API** - 标准化接口，自动生成文档
+- 🐳 **Docker 部署** - 一键启动所有服务
+
+**[查看完整迁移指南 →](docs/vue3_migration_guide.md)**
 
 ## 核心特性
 1. **多源数据聚合**：支持股票数据、行业新闻、财务报表等结构化/非结构化数据采集
@@ -177,20 +198,34 @@ print(f"总分析次数: {stats['total_count']}")
 
 ### 文件结构
 ```
-├── app.py                          # 🆕 Gradio 前端应用（主入口）
-├── start.bat / start.sh            # 🆕 启动脚本
-├── data/
-│   └── investor_profiles.json      # 投资者画像配置库
-├── analysis/
-│   ├── investor_profiles.py        # 投资者画像管理模块
+├── 🆕 api/                         # FastAPI 后端 API
+│   ├── main.py                     # 应用入口
+│   ├── routers/                    # API 路由（分析、记录、投资者）
+│   ├── services/                   # 业务逻辑层
+│   └── models/                     # 数据模型
+├── 🆕 frontend/                    # Vue3 前端工程
+│   ├── src/                        # 源代码
+│   │   ├── views/                  # 页面组件
+│   │   ├── api/                    # API 客户端
+│   │   └── components/             # 可复用组件
+│   ├── package.json                # npm 依赖
+│   └── vite.config.ts             # Vite 配置
+├── app.py                          # Gradio 应用（保留）
+├── analysis/                       # 核心分析模块
+│   ├── investor_profiles.py        # 投资者画像管理
 │   └── perspective_analyzer.py     # 多视角分析引擎
-├── storage/                        # 🆕 数据存储模块
-│   ├── __init__.py
+├── storage/                        # 数据存储模块
 │   └── db_manager.py              # MongoDB 管理器
-├── docs/
-│   ├── gradio_guide.md            # 🆕 Gradio 界面使用指南
-│   ├── mongodb_integration.md     # MongoDB 集成文档
-│   └── multi_perspective_guide.md # 多视角分析指南
-└── scripts/
-    └── test_multi_perspective.py   # 测试脚本
+├── data/
+│   └── investor_profiles.json      # 投资者配置数据
+├── docs/                           # 项目文档
+│   ├── vue3_migration_guide.md    # 🆕 Vue3 迁移指南
+│   ├── copilot_prompts.md         # 🆕 Copilot 提示词模板
+│   └── PROJECT_STRUCTURE.md       # 🆕 文件结构详解
+├── 🆕 docker-compose.yml          # 容器编排配置
+├── 🆕 start_new.bat/sh            # 多模式启动脚本
+└── scripts/                        # 测试脚本
+    └── test_multi_perspective.py
 ```
+
+**[查看完整文件结构说明 →](docs/PROJECT_STRUCTURE.md)**
