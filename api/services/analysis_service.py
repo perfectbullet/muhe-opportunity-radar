@@ -1,5 +1,6 @@
 """分析服务 - 封装核心业务逻辑"""
 import sys
+import asyncio
 from pathlib import Path
 
 # 添加项目根目录到路径
@@ -24,14 +25,14 @@ class AnalysisService:
         additional_context: str = None
     ) -> AsyncGenerator[str, None]:
         """
-        单一视角流式分析
+        单一视角流式分析（异步非阻塞）
         
         yields: 流式文本片段
         """
         try:
-            # 生成分析（这里需要修改 PerspectiveAnalyzer 支持流式输出）
-            # 临时方案：一次性返回结果，模拟流式
-            result = self.analyzer.analyze_from_perspective(
+            # 在线程池中执行分析，避免阻塞主事件循环
+            result = await asyncio.to_thread(
+                self.analyzer.analyze_from_perspective,
                 material=material,
                 investor_id=investor_id,
                 additional_context=additional_context
@@ -44,6 +45,8 @@ class AnalysisService:
             for i in range(0, len(analysis_text), chunk_size):
                 chunk = analysis_text[i:i + chunk_size]
                 yield chunk
+                # 添加小延迟，模拟流式效果
+                await asyncio.sleep(0.01)
                 
         except Exception as e:
             yield f"\n\n❌ 分析出错: {str(e)}"
@@ -55,12 +58,14 @@ class AnalysisService:
         additional_context: str = None
     ) -> Dict[str, Any]:
         """
-        单一视角完整分析
+        单一视角完整分析（异步非阻塞）
         
         Returns:
             包含 record_id, analysis 等字段的字典
         """
-        result = self.analyzer.analyze_from_perspective(
+        # 使用 asyncio.to_thread 将同步操作放到线程池执行，避免阻塞
+        result = await asyncio.to_thread(
+            self.analyzer.analyze_from_perspective,
             material=material,
             investor_id=investor_id,
             additional_context=additional_context
@@ -76,12 +81,14 @@ class AnalysisService:
         additional_context: str = None
     ) -> AsyncGenerator[str, None]:
         """
-        多视角对比流式分析
+        多视角对比流式分析（异步非阻塞）
         
         yields: 流式文本片段
         """
         try:
-            result = self.analyzer.compare_perspectives(
+            # 在线程池中执行，避免阻塞
+            result = await asyncio.to_thread(
+                self.analyzer.compare_perspectives,
                 material=material,
                 investor_ids=investor_ids,
                 additional_context=additional_context
@@ -116,12 +123,14 @@ class AnalysisService:
         additional_context: str = None
     ) -> Dict[str, Any]:
         """
-        多视角对比完整分析
+        多视角对比完整分析（异步非阻塞）
         
         Returns:
             包含 record_id, analyses, comparison_summary 等字段的字典
         """
-        result = self.analyzer.compare_perspectives(
+        # 在线程池中执行，避免阻塞
+        result = await asyncio.to_thread(
+            self.analyzer.compare_perspectives,
             material=material,
             investor_ids=investor_ids,
             additional_context=additional_context

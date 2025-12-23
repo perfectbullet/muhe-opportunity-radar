@@ -1,5 +1,5 @@
 """
-MongoDB 数据库管理模块
+MongoDB 数据库管理模块（异步版本）
 用于保存和查询投资分析历史记录
 """
 
@@ -9,12 +9,13 @@ from typing import Dict, List, Optional
 from pathlib import Path
 
 try:
-    from pymongo import MongoClient, ASCENDING, DESCENDING
+    from motor.motor_asyncio import AsyncIOMotorClient
+    from pymongo import ASCENDING, DESCENDING
     from pymongo.errors import ConnectionFailure, OperationFailure
-    PYMONGO_AVAILABLE = True
+    MOTOR_AVAILABLE = True
 except ImportError:
-    PYMONGO_AVAILABLE = False
-    print("⚠️  pymongo 未安装，请运行: pip install pymongo")
+    MOTOR_AVAILABLE = False
+    print("⚠️  motor 未安装，请运行: pip install motor")
 
 # 加载环境变量
 try:
@@ -26,7 +27,7 @@ except ImportError:
 
 
 class AnalysisRecordManager:
-    """投资分析记录管理器"""
+    """投资分析记录管理器（异步版本）"""
     
     def __init__(
         self,
@@ -42,8 +43,8 @@ class AnalysisRecordManager:
             db_name: 数据库名称，默认从环境变量读取
             collection_name: 集合名称，默认为 analysis_records
         """
-        if not PYMONGO_AVAILABLE:
-            raise ImportError("需要安装 pymongo 库")
+        if not MOTOR_AVAILABLE:
+            raise ImportError("需要安装 motor 库")
         
         # 获取配置
         self.connection_string = connection_string or os.getenv(
@@ -60,53 +61,49 @@ class AnalysisRecordManager:
         self.client = None
         self.db = None
         self.collection = None
-        self._connect()
+        self._init_connection()
     
-    def _connect(self):
-        """连接到 MongoDB"""
+    def _init_connection(self):
+        """初始化数据库连接"""
         try:
-            self.client = MongoClient(
+            self.client = AsyncIOMotorClient(
                 self.connection_string,
                 serverSelectionTimeoutMS=5000
             )
-            # 测试连接
-            self.client.admin.command('ping')
-            
             self.db = self.client[self.db_name]
             self.collection = self.db[self.collection_name]
             
-            # 创建索引
-            self._create_indexes()
+            print(f"✓ 已初始化 MongoDB 连接: {self.db_name}.{self.collection_name}")
             
-            print(f"✓ 已连接到 MongoDB: {self.db_name}.{self.collection_name}")
-            
-        except ConnectionFailure as e:
-            print(f"✗ MongoDB 连接失败: {e}")
-            print("  提示：请确保 MongoDB 服务已启动")
-            self.client = None
         except Exception as e:
             print(f"✗ MongoDB 初始化出错: {e}")
             self.client = None
     
-    def _create_indexes(self):
-        """创建数据库索引以提高查询性能"""
+    async def ensure_indexes(self):
+        """创建数据库索引以提高查询性能（异步）"""
+        if not self.client:
+            return
+            
         try:
             # 时间戳索引（降序，最新的在前）
-            self.collection.create_index([("created_at", DESCENDING)])
+            await self.collection.create_index([("created_at", DESCENDING)])
             
             # 投资者ID索引
-            self.collection.create_index("investor_id")
+            await self.collection.create_index("investor_id")
             
             # 复合索引：投资者+时间
-            self.collection.create_index([
+            await self.collection.create_index([
                 ("investor_id", ASCENDING),
                 ("created_at", DESCENDING)
             ])
             
+            print("✓ MongoDB 索引创建成功")
+            
         except Exception as e:
             print(f"⚠️  创建索引时出错: {e}")
     
-    def save_analysis(
+ 
+    async def save_analysis(
         self,
         material: str,
         investor_id: str,
@@ -116,7 +113,7 @@ class AnalysisRecordManager:
         metadata: Optional[Dict] = None
     ) -> Optional[str]:
         """
-        保存单次分析记录
+        保存单次分析记录（异步）
         
         Args:
             material: 分析材料
@@ -146,7 +143,7 @@ class AnalysisRecordManager:
                 "analysis_length": len(analysis_result)
             }
             
-            result = self.collection.insert_one(record)
+            result = await self.collection.insert_one(record)
             print(f"✓ 已保存分析记录: {result.inserted_id}")
             return str(result.inserted_id)
             
@@ -154,7 +151,7 @@ class AnalysisRecordManager:
             print(f"✗ 保存分析记录失败: {e}")
             return None
     
-    def save_comparison(
+    async def save_comparison(
         self,
         material: str,
         investor_ids: List[str],
@@ -163,7 +160,7 @@ class AnalysisRecordManager:
         additional_context: Optional[str] = None
     ) -> Optional[str]:
         """
-        保存多视角对比分析记录
+        保存多视角对比分析记录（异步）
         
         Args:
             material: 分析材料
@@ -192,7 +189,7 @@ class AnalysisRecordManager:
                 "material_length": len(material)
             }
             
-            result = self.collection.insert_one(record)
+            result = await self.collection.insert_one(record)
             print(f"✓ 已保存对比分析记录: {result.inserted_id}")
             return str(result.inserted_id)
             
@@ -200,13 +197,13 @@ class AnalysisRecordManager:
             print(f"✗ 保存对比分析记录失败: {e}")
             return None
     
-    def get_recent_analyses(
+    async def get_recent_analyses(
         self,
         limit: int = 10,
         investor_id: Optional[str] = None
     ) -> List[Dict]:
         """
-        获取最近的分析记录
+        获取最近的分析记录（异步）
         
         Args:
             limit: 返回记录数量
@@ -227,15 +224,15 @@ class AnalysisRecordManager:
                 "created_at", DESCENDING
             ).limit(limit)
             
-            return list(cursor)
+            return await cursor.to_list(length=limit)
             
         except Exception as e:
             print(f"✗ 查询分析记录失败: {e}")
             return []
     
-    def get_analysis_by_id(self, record_id: str) -> Optional[Dict]:
+    async def get_analysis_by_id(self, record_id: str) -> Optional[Dict]:
         """
-        根据ID获取分析记录
+        根据ID获取分析记录（异步）
         
         Args:
             record_id: 记录ID
@@ -248,18 +245,18 @@ class AnalysisRecordManager:
         
         try:
             from bson.objectid import ObjectId
-            return self.collection.find_one({"_id": ObjectId(record_id)})
+            return await self.collection.find_one({"_id": ObjectId(record_id)})
         except Exception as e:
             print(f"✗ 查询分析记录失败: {e}")
             return None
     
-    def search_analyses(
+    async def search_analyses(
         self,
         keyword: str,
         limit: int = 20
     ) -> List[Dict]:
         """
-        搜索分析记录
+        搜索分析记录（异步）
         
         Args:
             keyword: 搜索关键词
@@ -285,15 +282,15 @@ class AnalysisRecordManager:
                 "created_at", DESCENDING
             ).limit(limit)
             
-            return list(cursor)
+            return await cursor.to_list(length=limit)
             
         except Exception as e:
             print(f"✗ 搜索分析记录失败: {e}")
             return []
     
-    def get_statistics(self) -> Dict:
+    async def get_statistics(self) -> Dict:
         """
-        获取分析记录统计信息
+        获取分析记录统计信息（异步）
         
         Returns:
             统计信息字典
@@ -302,25 +299,25 @@ class AnalysisRecordManager:
             return {}
         
         try:
-            total_count = self.collection.count_documents({})
+            total_count = await self.collection.count_documents({})
             
             # 按投资者统计
-            investor_stats = list(self.collection.aggregate([
+            investor_stats = await self.collection.aggregate([
                 {"$group": {
                     "_id": "$investor_id",
                     "count": {"$sum": 1},
                     "investor_name": {"$first": "$investor_name"}
                 }},
                 {"$sort": {"count": -1}}
-            ]))
+            ]).to_list(length=None)
             
             # 按类型统计
-            type_stats = list(self.collection.aggregate([
+            type_stats = await self.collection.aggregate([
                 {"$group": {
                     "_id": "$type",
                     "count": {"$sum": 1}
                 }}
-            ]))
+            ]).to_list(length=None)
             
             return {
                 "total_count": total_count,

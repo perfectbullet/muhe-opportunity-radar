@@ -1,7 +1,21 @@
 # Vue3 前端 Dockerfile
-FROM node:18-alpine AS build
+FROM ubuntu:22.04 AS build
 
 WORKDIR /app
+
+# 设置 apt 源为清华源
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    sed -i 's@//.*security.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list
+
+# 安装 Node.js
+RUN apt-get update && apt-get install -y \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置 npm 源为清华源
+RUN npm config set registry https://registry.npmmirror.com
 
 # 复制依赖文件
 COPY frontend/package*.json ./
@@ -15,7 +29,7 @@ COPY frontend/ ./
 # 构建生产版本
 RUN npm run build
 
-# 生产阶段 - 使用 Nginx
+# 生产阶段 - 使用 Nginx (保持 alpine 以减小镜像体积)
 FROM nginx:alpine
 
 # 复制构建产物

@@ -49,6 +49,27 @@ class StatisticsResponse(BaseModel):
     recent_days: int = Field(30, description="统计天数")
 
 
+class WorkflowAnalysisResponse(BaseModel):
+    """工作流分析响应"""
+    success: bool = Field(..., description="是否成功")
+    final_report: Optional[Dict[str, Any]] = Field(None, description="最终报告")
+    workflow_result: Optional[Dict[str, Any]] = Field(None, description="完整工作流结果")
+    error: Optional[str] = Field(None, description="错误信息")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="元数据")
+
+
+class DocumentUploadResponse(BaseModel):
+    """文档上传响应"""
+    success: bool = Field(..., description="是否成功")
+    document_id: str = Field(..., description="文档ID")
+    filename: str = Field(..., description="文件名")
+    format: str = Field(..., description="文档格式")
+    size: int = Field(..., description="文件大小（字节）")
+    content_preview: str = Field(..., description="内容预览（前200字）")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="文档元数据")
+    error: Optional[str] = Field(None, description="错误信息")
+
+
 class InvestorProfile(BaseModel):
     """投资者画像"""
     id: str

@@ -73,3 +73,96 @@ export interface InvestorListResponse {
   investors: Investor[]
   total: number
 }
+
+// 文档管理相关类型
+export interface DocumentInfo {
+  document_id: string
+  filename: string
+  upload_time: string
+  size?: number
+  format?: string
+}
+
+export interface DocumentUploadResponse {
+  document_id: string
+  filename: string
+  format: string
+  message: string
+  analysis_result?: DocumentAnalysisResponse
+}
+
+export interface DocumentAnalysisResponse {
+  success: boolean
+  document_info?: {
+    format: string
+    pages?: number
+    metadata?: Record<string, any>
+  }
+  workflow_result?: {
+    parsed_content?: string
+    calculated_metrics?: {
+      metrics: Record<string, any>
+      summary: Record<string, any>
+    }
+    analysis_result?: string
+    final_report?: {
+      markdown: string
+      structured_data: Record<string, any>
+      metadata: Record<string, any>
+    }
+    investor_info?: {
+      id: string
+      name: string
+      title: string
+    }
+  }
+  final_report?: {
+    markdown: string
+    structured_data: Record<string, any>
+    metadata: Record<string, any>
+  }
+  error?: string
+}
+
+export interface DocumentMarkdownResponse {
+  document_id: string
+  markdown_content: string
+}
+
+export interface DocumentMetricsResponse {
+  document_id: string
+  metrics: {
+    _id?: string
+    document_id: string
+    metrics: Record<string, any>
+    summary: Record<string, any>
+    created_at: string
+  }
+}
+
+export interface DocumentReportResponse {
+  _id: string
+  document_id: string
+  investor_id: string
+  investor_name: string
+  report_markdown: string
+  structured_data: Record<string, any>
+  metadata: Record<string, any>
+  created_at: string
+}
+
+export interface DocumentFullInfoResponse {
+  document: {
+    _id: string
+    document_id: string
+    filename: string
+    content: string
+    format: string
+    markdown_content: string
+    metadata: Record<string, any>
+    upload_time: string
+  }
+  markdown_content: string
+  metrics: DocumentMetricsResponse['metrics'] | null
+  reports: DocumentReportResponse[]
+}

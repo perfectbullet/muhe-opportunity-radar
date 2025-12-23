@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 from dotenv import load_dotenv
 
-from api.routers import analysis, records, investors
+from api.routers import analysis, records, investors, documents
 
 # 加载环境变量
 load_dotenv()
@@ -16,8 +16,8 @@ load_dotenv()
 # 创建 FastAPI 应用
 app = FastAPI(
     title="Muhe Opportunity Radar API",
-    description="AI 投资机会分析 API - 多视角分析、历史记录、数据可视化",
-    version="2.0.0",
+    description="AI 投资机会分析 API - 多视角分析、历史记录、数据可视化、文档导入、LangGraph 工作流",
+    version="2.1.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json"
@@ -40,6 +40,7 @@ app.add_middleware(
 app.include_router(analysis.router, prefix="/api/v1", tags=["分析"])
 app.include_router(records.router, prefix="/api/v1", tags=["历史记录"])
 app.include_router(investors.router, prefix="/api/v1", tags=["投资者"])
+app.include_router(documents.router, prefix="/api/v1/documents", tags=["文档管理"])
 
 
 @app.get("/")
@@ -47,7 +48,7 @@ async def root():
     """根路径 - API 信息"""
     return {
         "name": "Muhe Opportunity Radar API",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "status": "running",
         "docs": "/api/docs",
         "endpoints": {
@@ -55,7 +56,14 @@ async def root():
             "多视角对比": "/api/v1/compare",
             "历史记录": "/api/v1/records",
             "统计信息": "/api/v1/statistics",
-            "投资者列表": "/api/v1/investors"
+            "投资者列表": "/api/v1/investors",
+            "文档上传": "/api/v1/documents/upload",
+            "工作流分析": "/api/v1/documents/analyze-workflow"
+        },
+        "new_features": {
+            "document_import": "支持 PDF/Word/Markdown 文档导入",
+            "langgraph_workflow": "集成 LangGraph 数据分析工作流",
+            "metrics_calculation": "自动计算财务指标（PE、PB、ROE、PEG）"
         }
     }
 

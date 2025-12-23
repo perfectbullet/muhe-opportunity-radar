@@ -18,22 +18,25 @@ class InvestorService:
         """获取所有投资者列表"""
         all_investors = self.manager.get_all_profiles()
         
-        # 格式化输出
+        # 格式化输出 - all_investors 是 List[InvestorProfile]
         formatted_investors = []
-        for inv_id, profile in all_investors.items():
+        for profile in all_investors:
             formatted_investors.append({
-                "id": inv_id,
-                "name": profile.get("name", ""),
-                "title": profile.get("title", ""),
-                "style": profile.get("style", ""),
-                "philosophy": profile.get("philosophy", ""),
+                "id": profile.id,
+                "name": profile.name,
+                "title": profile.title,
+                "style": profile.risk_tolerance,
+                "philosophy": profile.investment_philosophy,
             })
         
         return formatted_investors
     
     async def get_investor_detail(self, investor_id: str) -> Dict[str, Any]:
         """获取投资者详情"""
-        return self.manager.get_profile(investor_id)
+        profile = self.manager.get_profile(investor_id)
+        if profile:
+            return profile.model_dump()
+        return None
 
 
 # 全局服务实例

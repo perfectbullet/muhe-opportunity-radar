@@ -7,18 +7,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+        dark: {
+          50: '#e2e8f0',
+          100: '#cbd5e1',
+          200: '#94a3b8',
+          300: '#64748b',
+          400: '#475569',
+          500: '#334155',
+          600: '#1e293b',
+          700: '#0f172a',
+          800: '#0a0e27',
+          900: '#020617',
         },
+        neon: {
+          blue: '#3b82f6',
+          purple: '#6366f1',
+          cyan: '#06b6d4',
+        },
+      },
+      backgroundColor: {
+        'dark-primary': '#0a0e27',
+        'dark-secondary': '#0f172a',
+        'dark-card': '#1e293b',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',

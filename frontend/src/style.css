@@ -16,31 +16,36 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0a0e27;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(17, 24, 39, 0.8) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.8) 0px, transparent 50%);
 }
 
 #app {
   min-height: 100vh;
+  background: transparent;
 }
 
-/* 自定义滚动条样式 */
+/* 自定义滚动条样式 - 黑色主题 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  background: linear-gradient(180deg, #3b82f6 0%, #6366f1 100%);
+  border-radius: 5px;
+  border: 2px solid rgba(15, 23, 42, 0.5);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.5);
+  background: linear-gradient(180deg, #60a5fa 0%, #818cf8 100%);
 }
 
 /* Markdown 样式 */

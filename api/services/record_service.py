@@ -1,5 +1,6 @@
 """记录服务 - 历史记录管理"""
 import sys
+import asyncio
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -19,8 +20,9 @@ class RecordService:
         limit: int = 20,
         investor_filter: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """获取最近记录"""
-        records = self.manager.get_recent_analyses(
+        """获取最近记录（异步）"""
+        # 直接调用异步方法，不需要 asyncio.to_thread
+        records = await self.manager.get_recent_analyses(
             limit=limit,
             investor_id=investor_filter
         )
@@ -52,8 +54,8 @@ class RecordService:
         return formatted_records
     
     async def get_record_detail(self, record_id: str) -> Optional[Dict[str, Any]]:
-        """获取记录详情"""
-        return self.manager.get_analysis_by_id(record_id)
+        """获取记录详情（异步）"""
+        return await self.manager.get_analysis_by_id(record_id)
     
     async def search_records(
         self,
@@ -61,9 +63,12 @@ class RecordService:
         limit: int = 20,
         investor_filter: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """搜索记录"""
-        # 首先搜索
-        records = self.manager.search_analyses(keyword=keyword, limit=limit)
+        """搜索记录（异步）"""
+        # 直接调用异步方法
+        records = await self.manager.search_analyses(
+            keyword=keyword,
+            limit=limit
+        )
         
         # 如果有投资者过滤，进一步筛选
         if investor_filter:
@@ -98,9 +103,26 @@ class RecordService:
         return formatted_records
     
     async def get_statistics(self) -> Dict[str, Any]:
-        """获取统计信息"""
-        return self.manager.get_statistics()
-
+        """获取统计信息（异步）"""
+        stats = await self.manager.get_statistics()
+        
+        # 转换为响应模型期望的格式
+        by_investor = {}
+        for item in stats.get("investor_stats", []):
+            investor_name = item.get("investor_name", item.get("_id", "未知"))
+            by_investor[investor_name] = item.get("count", 0)
+        
+        by_type = {}
+        for item in stats.get("type_stats", []):
+            type_name = item.get("_id") or "single"
+            by_type[type_name] = item.get("count", 0)
+        
+        return {
+            "total_count": stats.get("total_count", 0),
+            "by_investor": by_investor,
+            "by_type": by_type,
+            "recent_days": 30
+        }
 
 # 全局服务实例
 _record_service = None
