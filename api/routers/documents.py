@@ -4,8 +4,8 @@
 """
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from fastapi.responses import JSONResponse
-from typing import Optional
+from typing import Optional, Dict, Any, List
+
 import shutil
 import uuid
 from pathlib import Path
@@ -16,7 +16,7 @@ from api.models.responses import DocumentUploadResponse, WorkflowAnalysisRespons
 from api.services.workflow_service import WorkflowService
 from analysis.document_parser import DocumentParser
 
-router = APIRouter()
+router = APIRouter(prefix="/documents")
 
 # 上传文件存储目录
 UPLOAD_DIR = Path("data/uploads")
@@ -194,7 +194,7 @@ async def analyze_document(request: DocumentAnalysisRequest):
         )
 
 
-@router.get("/documents")
+@router.get("")
 async def list_documents():
     """列出所有已上传的文档"""
     documents = []
@@ -219,7 +219,7 @@ async def list_documents():
     }
 
 
-@router.delete("/documents/{document_id}")
+@router.delete("/{document_id}")
 async def delete_document(document_id: str):
     """删除指定文档"""
     document_files = list(UPLOAD_DIR.glob(f"{document_id}.*"))

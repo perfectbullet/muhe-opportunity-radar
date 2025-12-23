@@ -40,7 +40,7 @@ app.add_middleware(
 app.include_router(analysis.router, prefix="/api/v1", tags=["分析"])
 app.include_router(records.router, prefix="/api/v1", tags=["历史记录"])
 app.include_router(investors.router, prefix="/api/v1", tags=["投资者"])
-app.include_router(documents.router, prefix="/api/v1/documents", tags=["文档管理"])
+app.include_router(documents.router, prefix="/api/v1", tags=["文档管理"])
 
 
 @app.get("/")

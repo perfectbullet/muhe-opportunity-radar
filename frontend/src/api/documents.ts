@@ -1,4 +1,5 @@
-import axios from './client'
+import { apiClient } from './client'
+import axios from 'axios'
 import type { 
   DocumentUploadResponse,
   DocumentAnalysisResponse,
@@ -33,7 +34,9 @@ export const uploadDocument = async (
   
   formData.append('auto_analyze', String(autoAnalyze))
   
-  const response = await axios.post('/documents/upload', formData, {
+  // 注意：文件上传需要使用原生 axios，因为 apiClient 不支持 FormData 的特殊处理
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+  const response = await axios.post(`${apiBaseUrl}/documents/upload`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -53,13 +56,11 @@ export const analyzeDocumentWithWorkflow = async (
   investorId: string,
   additionalContext?: string
 ): Promise<DocumentAnalysisResponse> => {
-  const response = await axios.post('/documents/analyze-workflow', {
+  return apiClient.post('/documents/analyze-workflow', {
     document_id: documentId,
     investor_id: investorId,
     additional_context: additionalContext,
   })
-  
-  return response.data
 }
 
 /**
@@ -71,20 +72,18 @@ export const analyzeDocument = async (
   documentId: string,
   investorId: string
 ): Promise<DocumentAnalysisResponse> => {
-  const response = await axios.post('/documents/analyze-document', {
+  return apiClient.post('/documents/analyze-document', {
     document_id: documentId,
     investor_id: investorId,
   })
-  
-  return response.data
 }
 
 /**
  * 获取文档列表
  */
 export const getDocuments = async (): Promise<DocumentInfo[]> => {
-  const response = await axios.get('/documents')
-  return response.data
+  const response = await apiClient.get<{ documents: DocumentInfo[]; total: number }>('/documents')
+  return response.documents
 }
 
 /**
@@ -92,8 +91,7 @@ export const getDocuments = async (): Promise<DocumentInfo[]> => {
  * @param documentId - 文档 ID
  */
 export const deleteDocument = async (documentId: string): Promise<{ message: string }> => {
-  const response = await axios.delete(`/documents/${documentId}`)
-  return response.data
+  return apiClient.delete(`/documents/${documentId}`)
 }
 
 /**
@@ -103,8 +101,7 @@ export const getSupportedFormats = async (): Promise<{
   formats: string[]
   parser_info: Record<string, string>
 }> => {
-  const response = await axios.get('/documents/supported-formats')
-  return response.data
+  return apiClient.get('/documents/supported-formats')
 }
 
 /**
@@ -112,8 +109,7 @@ export const getSupportedFormats = async (): Promise<{
  * @param documentId - 文档 ID
  */
 export const getDocumentMarkdown = async (documentId: string): Promise<DocumentMarkdownResponse> => {
-  const response = await axios.get(`/documents/${documentId}/markdown`)
-  return response.data
+  return apiClient.get(`/documents/${documentId}/markdown`)
 }
 
 /**
@@ -121,8 +117,7 @@ export const getDocumentMarkdown = async (documentId: string): Promise<DocumentM
  * @param documentId - 文档 ID
  */
 export const getDocumentMetrics = async (documentId: string): Promise<DocumentMetricsResponse> => {
-  const response = await axios.get(`/documents/${documentId}/metrics`)
-  return response.data
+  return apiClient.get(`/documents/${documentId}/metrics`)
 }
 
 /**
@@ -134,9 +129,8 @@ export const getDocumentReports = async (
   documentId: string,
   investorId?: string
 ): Promise<DocumentReportResponse[]> => {
-  const params = investorId ? { investor_id: investorId } : {}
-  const response = await axios.get(`/documents/${documentId}/reports`, { params })
-  return response.data
+  const params = investorId ? { investor_id: investorId } : undefined
+  return apiClient.get(`/documents/${documentId}/reports`, params)
 }
 
 /**
@@ -144,6 +138,5 @@ export const getDocumentReports = async (
  * @param documentId - 文档 ID
  */
 export const getDocumentFullInfo = async (documentId: string): Promise<DocumentFullInfoResponse> => {
-  const response = await axios.get(`/documents/${documentId}/full`)
-  return response.data
+  return apiClient.get(`/documents/${documentId}/full`)
 }

@@ -40,8 +40,8 @@ class ApiClient {
     return this.client.get(url, { params })
   }
 
-  post<T = any>(url: string, data?: any): Promise<T> {
-    return this.client.post(url, data)
+  post<T = any>(url: string, data?: any, config?: any): Promise<T> {
+    return this.client.post(url, data, config)
   }
 
   put<T = any>(url: string, data?: any): Promise<T> {

@@ -12,6 +12,11 @@ export function getAllInvestors(): Promise<InvestorListResponse> {
 }
 
 /**
+ * 获取所有投资者列表（别名）
+ */
+export const getInvestors = getAllInvestors
+
+/**
  * 获取投资者详情
  */
 export function getInvestorDetail(investorId: string): Promise<Investor> {
