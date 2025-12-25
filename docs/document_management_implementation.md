@@ -285,7 +285,7 @@ start_new.bat
 **方式2: 手动启动**
 ```bash
 # 终端1 - 后端
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port 8080
 
 # 终端2 - 前端
 cd frontend
@@ -294,7 +294,7 @@ npm run dev
 
 ### 4. 访问地址
 - **前端界面**: http://localhost:5173
-- **API 文档**: http://localhost:8000/api/docs
+- **API 文档**: http://localhost:8080/api/docs
 - **文档上传**: http://localhost:5173/documents/upload
 
 ## 📝 使用示例
@@ -343,7 +343,7 @@ npm run dev
 
 ## 🔍 API 文档
 
-访问 http://localhost:8000/api/docs 查看完整的 Swagger API 文档。
+访问 http://localhost:8080/api/docs 查看完整的 Swagger API 文档。
 
 ### 核心接口
 

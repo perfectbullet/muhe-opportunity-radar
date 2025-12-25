@@ -13,7 +13,7 @@ AI 投资机会分析工具，模拟10位投资大师（巴菲特、格雷厄姆
 ## 🏗️ 架构理解（三层分离 + 数据分析工作流）
 
 ```
-Vue3 前端 (5173)  ←→  FastAPI API (8000)  ←→  MongoDB (27017)
+Vue3 前端 (5173)  ←→  FastAPI API (8080)  ←→  MongoDB (27017)
      ↓                      ↓
  流式打字机效果      异步分析服务层              
                     (asyncio.to_thread)           LangGraph 工作流
@@ -87,7 +87,7 @@ REM 选择 [3] 同时启动后端和前端
 
 REM 方式2：手动启动
 REM 终端1 - 后端
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port 8080
 
 REM 终端2 - 前端
 cd frontend
@@ -96,7 +96,7 @@ npm run dev
 
 ### 访问地址
 - **Vue3 界面**: http://localhost:5173
-- **API 文档**: http://localhost:8000/api/docs（Swagger UI，自动生成）
+- **API 文档**: http://localhost:8080/api/docs（Swagger UI，自动生成）
 - **Gradio 备用**: `python app.py` → http://localhost:7860
 
 ### 测试新分析逻辑
@@ -105,7 +105,7 @@ npm run dev
 python scripts/test_multi_perspective.py
 
 # 或使用 API 测试
-curl -X POST http://localhost:8000/api/v1/analyze \
+curl -X POST http://localhost:8080/api/v1/analyze \
   -H "Content-Type: application/json" \
   -d '{"material": "贵州茅台 PE=35", "investor_id": "buffett"}'
 ```
@@ -182,7 +182,7 @@ async def my_endpoint(request: MyRequest):
     return MyResponse(...)
 ```
 3. **注册路由** → `api/main.py` 中 `app.include_router(xxx.router)`
-4. **访问文档** → http://localhost:8000/api/docs 验证接口
+4. **访问文档** → http://localhost:8080/api/docs 验证接口
 
 ### 流式输出（SSE）
 ```python
@@ -242,7 +242,7 @@ docker-compose down
 
 ### 服务访问
 - **前端**: http://localhost (Nginx 端口 80)
-- **API**: http://localhost:8000
+- **API**: http://localhost:8080
 - **MongoDB**: localhost:27017
 
 ### 数据持久化

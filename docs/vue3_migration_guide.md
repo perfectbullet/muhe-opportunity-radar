@@ -59,15 +59,15 @@ pip install -r requirements.txt
 
 ```bash
 # 开发模式（热重载）
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port 8080
 
 # 或直接运行
 python api/main.py
 ```
 
 访问 API 文档：
-- Swagger UI: http://localhost:8000/api/docs
-- ReDoc: http://localhost:8000/api/redoc
+- Swagger UI: http://localhost:8080/api/docs
+- ReDoc: http://localhost:8080/api/redoc
 
 ### Step 3: 安装前端依赖
 
@@ -92,7 +92,7 @@ npm run dev
 
 访问前端：http://localhost:5173
 
-> Vite 已配置代理，前端的 `/api` 请求会自动转发到后端 `http://localhost:8000`
+> Vite 已配置代理，前端的 `/api` 请求会自动转发到后端 `http://localhost:8080`
 
 ### Step 5: 测试核心功能
 
@@ -100,10 +100,10 @@ npm run dev
 
 ```bash
 # 获取投资者列表
-curl http://localhost:8000/api/v1/investors
+curl http://localhost:8080/api/v1/investors
 
 # 单一视角分析
-curl -X POST http://localhost:8000/api/v1/analyze \
+curl -X POST http://localhost:8080/api/v1/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "material": "公司：贵州茅台\n市盈率：35倍\nROE：30%",
@@ -111,7 +111,7 @@ curl -X POST http://localhost:8000/api/v1/analyze \
   }'
 
 # 历史记录
-curl http://localhost:8000/api/v1/records?limit=10
+curl http://localhost:8080/api/v1/records?limit=10
 ```
 
 #### 前端功能测试
@@ -150,7 +150,7 @@ docker-compose down
 
 服务访问：
 - **前端**: http://localhost:80
-- **后端 API**: http://localhost:8000
+- **后端 API**: http://localhost:8080
 - **Gradio 备用**: http://localhost:7860
 - **MongoDB**: localhost:27017
 

@@ -207,7 +207,7 @@ async def analyze_document(request: DocumentAnalysisRequest):
         )
 
 
-@router.get("")
+@router.get("/list")
 async def list_documents():
     """列出所有已上传的文档"""
     from storage.document_manager import DocumentManager

@@ -20,7 +20,7 @@ if [ ! -f .env ]; then
 fi
 
 echo "请选择启动模式："
-echo "[1] FastAPI 后端（端口 8000）"
+echo "[1] FastAPI 后端（端口 8080）"
 echo "[2] Vue3 前端（端口 5173）"
 echo "[3] 同时启动后端和前端"
 echo "[4] Gradio 应用（端口 7860，备用）"
@@ -33,7 +33,7 @@ case $choice in
     1)
         echo
         echo "[启动] FastAPI 后端..."
-        python -m uvicorn api.main:app --reload --port 8000
+        python -m uvicorn api.main:app --reload --port 8080
         ;;
     2)
         echo
@@ -44,7 +44,7 @@ case $choice in
     3)
         echo
         echo "[启动] 后端和前端..."
-        python -m uvicorn api.main:app --reload --port 8000 &
+        python -m uvicorn api.main:app --reload --port 8080 &
         sleep 3
         cd frontend
         npm run dev
@@ -61,7 +61,7 @@ case $choice in
         echo
         echo "服务已启动："
         echo "- 前端: http://localhost"
-        echo "- API: http://localhost:8000/api/docs"
+        echo "- API: http://localhost:8080/api/docs"
         echo "- Gradio: http://localhost:7860"
         echo "- MongoDB: localhost:27017"
         echo

@@ -6,7 +6,7 @@
 ┌─────────────┐      ┌──────────────┐      ┌──────────────┐
 │   Vue3      │ ───► │   FastAPI    │ ───► │   MongoDB    │
 │  前端界面    │ HTTP │   后端 API    │      │   数据存储    │
-│ (Port 5173) │ ◄─── │  (Port 8000) │      │ (Port 27017) │
+│ (Port 5173) │ ◄─── │  (Port 8080) │      │ (Port 27017) │
 └─────────────┘      └──────────────┘      └──────────────┘
 ```
 
@@ -55,7 +55,7 @@ chmod +x start_new.sh
 
 **终端 1 - 启动后端:**
 ```bash
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port 8080
 ```
 
 **终端 2 - 启动前端:**
@@ -67,7 +67,7 @@ npm run dev
 ### 4. 访问应用
 
 - **前端界面**: http://localhost:5173
-- **API 文档**: http://localhost:8000/api/docs
+- **API 文档**: http://localhost:8080/api/docs
 - **备用 Gradio**: http://localhost:7860 (运行 `python app.py`)
 
 ## 🐳 Docker 部署
@@ -88,7 +88,7 @@ docker-compose down
 ### 访问地址
 
 - **前端**: http://localhost
-- **API**: http://localhost:8000
+- **API**: http://localhost:8080
 - **Gradio**: http://localhost:7860
 - **MongoDB**: localhost:27017
 

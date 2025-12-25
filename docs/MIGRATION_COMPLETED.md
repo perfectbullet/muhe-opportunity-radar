@@ -97,7 +97,7 @@ start_new.bat  # Windows
 
 # 4. 访问应用
 # 前端: http://localhost:5173
-# API: http://localhost:8000/api/docs
+# API: http://localhost:8080/api/docs
 ```
 
 ## 📚 关键文档

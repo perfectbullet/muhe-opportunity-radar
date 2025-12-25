@@ -143,7 +143,7 @@ const router = useRouter()
 const message = useMessage()
 
 // API 配置
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
 
 // 上传配置
 const selectedInvestorId = ref<string | null>(null)

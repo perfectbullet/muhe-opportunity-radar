@@ -153,11 +153,11 @@ pip install langgraph pdfplumber python-docx python-multipart
 
 ### 2. 启动 API 服务
 ```bash
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port 8080
 ```
 
 ### 3. 访问 API 文档
-打开浏览器: http://localhost:8000/api/docs
+打开浏览器: http://localhost:8080/api/docs
 
 ### 4. 测试工作流
 ```bash
@@ -203,7 +203,7 @@ scripts/
 
 **使用 curl**:
 ```bash
-curl -X POST "http://localhost:8000/api/v1/documents/upload" \
+curl -X POST "http://localhost:8080/api/v1/documents/upload" \
   -F "file=@财报.pdf" \
   -F "investor_id=buffett" \
   -F "auto_analyze=true"
@@ -217,7 +217,7 @@ files = {'file': open('财报.pdf', 'rb')}
 data = {'investor_id': 'buffett', 'auto_analyze': 'true'}
 
 response = requests.post(
-    'http://localhost:8000/api/v1/documents/upload',
+    'http://localhost:8080/api/v1/documents/upload',
     files=files,
     data=data
 )
@@ -244,7 +244,7 @@ payload = {
 }
 
 response = requests.post(
-    'http://localhost:8000/api/v1/documents/analyze-workflow',
+    'http://localhost:8080/api/v1/documents/analyze-workflow',
     json=payload
 )
 

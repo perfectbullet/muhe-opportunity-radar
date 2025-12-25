@@ -236,7 +236,7 @@ FastAPI 现代 Web 框架，提供 RESTful API。
 
 - `nginx.conf` - Nginx 配置
   - 前端静态文件服务
-  - API 反向代理 (`/api` → `http://api:8000`)
+  - API 反向代理 (`/api` → `http://api:8080`)
   - SSE 流式输出支持（禁用缓冲）
   - Gzip 压缩
 
@@ -424,16 +424,16 @@ scripts/            # ~100 KB
 ### 开发环境
 ```
 前端应用：http://localhost:5173
-后端 API：http://localhost:8000
-API 文档：http://localhost:8000/api/docs
+后端 API：http://localhost:8080
+API 文档：http://localhost:8080/api/docs
 Gradio 备用：http://localhost:7860
 ```
 
 ### 生产环境（Docker）
 ```
 前端应用：http://localhost
-后端 API：http://localhost:8000
-API 文档：http://localhost:8000/api/docs
+后端 API：http://localhost:8080
+API 文档：http://localhost:8080/api/docs
 Gradio 备用：http://localhost:7860
 MongoDB：localhost:27017
 ```
