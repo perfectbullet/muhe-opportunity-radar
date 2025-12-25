@@ -5,6 +5,7 @@
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from typing import Optional, Dict, Any, List
+from datetime import datetime
 
 import shutil
 import uuid
@@ -74,6 +75,18 @@ async def upload_document(
         # 提取内容预览
         content = parse_result.get("content", "")
         content_preview = content[:200] + "..." if len(content) > 200 else content
+        
+        # 保存文档到 MongoDB
+        from storage.document_manager import DocumentManager
+        doc_manager = DocumentManager()
+        await doc_manager.save_document(
+            document_id=document_id,
+            filename=file.filename,
+            content=content,
+            format=parse_result.get("format", "unknown"),
+            markdown_content=parse_result.get("markdown_content", content),
+            metadata=parse_result.get("metadata")
+        )
         
         # 构建响应
         response = DocumentUploadResponse(
@@ -197,25 +210,25 @@ async def analyze_document(request: DocumentAnalysisRequest):
 @router.get("")
 async def list_documents():
     """列出所有已上传的文档"""
-    documents = []
+    from storage.document_manager import DocumentManager
     
-    for file_path in UPLOAD_DIR.iterdir():
-        if file_path.is_file():
-            # 提取文档ID和格式
-            document_id = file_path.stem
-            file_format = file_path.suffix
-            
-            documents.append({
-                "document_id": document_id,
-                "filename": file_path.name,
-                "format": file_format,
-                "size": os.path.getsize(file_path),
-                "uploaded_at": file_path.stat().st_ctime
-            })
+    doc_manager = DocumentManager()
+    documents = await doc_manager.list_documents(limit=100)
+    
+    # 格式化响应，确保字段名与前端一致
+    formatted_docs = []
+    for doc in documents:
+        formatted_docs.append({
+            "document_id": doc["document_id"],
+            "filename": doc["filename"],
+            "format": doc["format"],
+            "size": doc.get("content_length", 0),
+            "upload_time": doc["created_at"].isoformat() if isinstance(doc["created_at"], datetime) else doc["created_at"]
+        })
     
     return {
-        "documents": documents,
-        "total": len(documents)
+        "documents": formatted_docs,
+        "total": len(formatted_docs)
     }
 
 

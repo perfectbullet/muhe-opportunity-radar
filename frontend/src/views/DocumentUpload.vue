@@ -147,7 +147,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/a
 
 // 上传配置
 const selectedInvestorId = ref<string | null>(null)
-const autoAnalyze = ref(true)
+const autoAnalyze = ref(false)
 const uploadRef = ref()
 
 // 投资者选项
@@ -280,7 +280,7 @@ const handleAnalyzeDocument = async (documentId: string) => {
     setTimeout(() => {
       showAnalysisModal.value = false
       // 跳转到查看页面
-      router.push(`/documents/${documentId}`)
+      router.push(`/documents/view/${documentId}`)
     }, 1000)
   } catch (error: any) {
     message.error(`分析失败: ${error.message}`)
@@ -290,7 +290,7 @@ const handleAnalyzeDocument = async (documentId: string) => {
 
 // 查看文档
 const handleViewDocument = (documentId: string) => {
-  router.push(`/documents/${documentId}`)
+  router.push(`/documents/view/${documentId}`)
 }
 
 // 删除文档

@@ -66,6 +66,12 @@ class DocumentManager:
         
         if document:
             document["_id"] = str(document["_id"])
+            # 转换时间为 ISO 字符串格式
+            if "created_at" in document and isinstance(document["created_at"], datetime):
+                document["created_at"] = document["created_at"].isoformat()
+            # 添加 upload_time 字段以兼容前端
+            if "created_at" in document:
+                document["upload_time"] = document["created_at"]
             return document
         return None
     
@@ -90,6 +96,9 @@ class DocumentManager:
         
         for doc in documents:
             doc["_id"] = str(doc["_id"])
+            # 转换时间为 ISO 字符串格式
+            if "created_at" in doc and isinstance(doc["created_at"], datetime):
+                doc["created_at"] = doc["created_at"].isoformat()
         
         return documents
     
@@ -258,8 +267,12 @@ class DocumentManager:
         metrics = await self.get_metrics(document_id)
         reports = await self.list_reports(document_filter=document_id, limit=10)
         
+        # 确保 markdown_content 字段存在
+        markdown_content = document.get("markdown_content", "")
+        
         return {
             "document": document,
+            "markdown_content": markdown_content,
             "metrics": metrics,
             "reports": reports
         }

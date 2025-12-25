@@ -43,7 +43,7 @@ const router = createRouter({
               meta: { title: '文档上传' },
             },
             {
-              path: ':id',
+              path: 'view/:id',
               name: 'documentView',
               component: () => import('@/views/DocumentView.vue'),
               meta: { title: '文档查看' },
