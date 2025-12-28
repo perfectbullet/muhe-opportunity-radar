@@ -92,3 +92,21 @@ class DocumentAnalysisRequest(BaseModel):
         }
     }
 
+
+class ReanalyzeRequest(BaseModel):
+    """重新分析已有材料的请求"""
+    investor_id: str = Field(..., description="投资者ID (如: buffett, graham)")
+    additional_context: Optional[str] = Field(None, description="额外上下文信息")
+    use_comparison: bool = Field(False, description="是否使用多视角对比")
+    investor_ids: Optional[List[str]] = Field(None, description="多视角对比时的投资者ID列表")
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "investor_id": "lynch",
+                "additional_context": "当前处于熊市阶段",
+                "use_comparison": False
+            }
+        }
+    }
+
