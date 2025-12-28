@@ -47,9 +47,14 @@
                 {{ record.material }}
               </n-ellipsis>
               <template #footer>
-                <n-button text @click="viewDetail(record.record_id)">
-                  查看详情 →
-                </n-button>
+                <n-space>
+                  <n-button text @click="viewDetail(record.record_id)">
+                    查看详情 →
+                  </n-button>
+                  <n-button text type="primary" @click="openReanalyzeDialog(record)">
+                    重新分析 🔄
+                  </n-button>
+                </n-space>
               </template>
             </n-thing>
           </n-list-item>
@@ -69,18 +74,85 @@
     <!-- 详情对话框 -->
     <n-modal v-model:show="showDetail" preset="card" style="width: 800px" title="记录详情">
       <div v-if="detailData" class="markdown-body" v-html="renderDetail()"></div>
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="showDetail = false">关闭</n-button>
+          <n-button type="primary" @click="openReanalyzeDialog(detailData)">
+            使用此材料重新分析
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
+
+    <!-- 重新分析对话框 -->
+    <n-modal v-model:show="showReanalyze" preset="card" style="width: 600px" title="🔄 重新分析材料">
+      <n-space vertical :size="20">
+        <n-alert type="info" title="重新分析说明">
+          将使用原始材料进行新的分析。您可以选择不同的投资者视角或进行多视角对比。
+        </n-alert>
+
+        <n-form ref="reanalyzeFormRef" :model="reanalyzeForm">
+          <n-form-item label="分析模式" path="mode">
+            <n-radio-group v-model:value="reanalyzeForm.mode">
+              <n-space>
+                <n-radio value="single">单一视角</n-radio>
+                <n-radio value="comparison">多视角对比</n-radio>
+              </n-space>
+            </n-radio-group>
+          </n-form-item>
+
+          <n-form-item v-if="reanalyzeForm.mode === 'single'" label="选择投资者" path="investorId">
+            <n-select
+              v-model:value="reanalyzeForm.investorId"
+              :options="investorOptions"
+              placeholder="选择一位投资者"
+            />
+          </n-form-item>
+
+          <n-form-item v-if="reanalyzeForm.mode === 'comparison'" label="选择投资者" path="investorIds">
+            <n-select
+              v-model:value="reanalyzeForm.investorIds"
+              :options="investorOptions"
+              placeholder="选择2-10位投资者"
+              multiple
+              :max-tag-count="3"
+            />
+          </n-form-item>
+
+          <n-form-item label="额外上下文（可选）" path="additionalContext">
+            <n-input
+              v-model:value="reanalyzeForm.additionalContext"
+              type="textarea"
+              placeholder="例如：当前市场环境、特殊考虑因素等..."
+              :autosize="{ minRows: 3, maxRows: 6 }"
+            />
+          </n-form-item>
+        </n-form>
+      </n-space>
+
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="showReanalyze = false">取消</n-button>
+          <n-button type="primary" @click="handleReanalyze" :loading="reanalyzing">
+            开始分析
+          </n-button>
+        </n-space>
+      </template>
     </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useMessage } from 'naive-ui'
-import { getRecentRecords, searchRecords, getRecordDetail, getAllInvestors } from '@/api'
+import { useMessage, useDialog } from 'naive-ui'
+import { useRouter } from 'vue-router'
+import { getRecentRecords, searchRecords, getRecordDetail, getAllInvestors, reanalyzeMaterial } from '@/api'
 import type { RecordItem, Investor } from '@/types/api'
 import MarkdownIt from 'markdown-it'
 
 const message = useMessage()
+const dialog = useDialog()
+const router = useRouter()
 const md = new MarkdownIt()
 
 // 数据
@@ -93,6 +165,18 @@ const pageCount = ref(1)
 const showDetail = ref(false)
 const detailData = ref<any>(null)
 
+// 重新分析相关
+const showReanalyze = ref(false)
+const reanalyzing = ref(false)
+const currentReanalyzeRecord = ref<any>(null)
+const reanalyzeForm = ref({
+  mode: 'single' as 'single' | 'comparison',
+  investorId: '',
+  investorIds: [] as string[],
+  additionalContext: ''
+})
+const reanalyzeFormRef = ref()
+
 // 计算属性
 const investorFilterOptions = computed(() => [
   { label: '全部', value: undefined },
@@ -101,6 +185,13 @@ const investorFilterOptions = computed(() => [
     value: inv.id,
   })),
 ])
+
+const investorOptions = computed(() =>
+  investors.value.map((inv) => ({
+    label: `${inv.name} (${inv.title})`,
+    value: inv.id,
+  }))
+)
 
 // 方法
 async function loadRecords() {
@@ -173,6 +264,72 @@ async function loadInvestors() {
     investors.value = response.investors
   } catch (error: any) {
     console.error('加载投资者列表失败:', error)
+  }
+}
+
+// 打开重新分析对话框
+function openReanalyzeDialog(record: any) {
+  currentReanalyzeRecord.value = record
+  reanalyzeForm.value = {
+    mode: 'single',
+    investorId: '',
+    investorIds: [],
+    additionalContext: ''
+  }
+  showReanalyze.value = true
+}
+
+// 执行重新分析
+async function handleReanalyze() {
+  try {
+    // 验证表单
+    if (reanalyzeForm.value.mode === 'single' && !reanalyzeForm.value.investorId) {
+      message.warning('请选择一位投资者')
+      return
+    }
+    
+    if (reanalyzeForm.value.mode === 'comparison') {
+      if (reanalyzeForm.value.investorIds.length < 2) {
+        message.warning('多视角对比至少需要选择2位投资者')
+        return
+      }
+      if (reanalyzeForm.value.investorIds.length > 10) {
+        message.warning('最多只能选择10位投资者')
+        return
+      }
+    }
+
+    reanalyzing.value = true
+    
+    const recordId = currentReanalyzeRecord.value.record_id || currentReanalyzeRecord.value._id
+    const requestData = {
+      investor_id: reanalyzeForm.value.investorId,
+      additional_context: reanalyzeForm.value.additionalContext || undefined,
+      use_comparison: reanalyzeForm.value.mode === 'comparison',
+      investor_ids: reanalyzeForm.value.mode === 'comparison' ? reanalyzeForm.value.investorIds : undefined
+    }
+
+    const result = await reanalyzeMaterial(recordId, requestData)
+    
+    message.success('重新分析完成！')
+    showReanalyze.value = false
+    
+    // 显示结果对话框
+    dialog.success({
+      title: '分析完成',
+      content: '已完成重新分析，是否查看结果？',
+      positiveText: '查看结果',
+      negativeText: '返回列表',
+      onPositiveClick: () => {
+        // 刷新记录列表并显示新记录
+        loadRecords()
+      }
+    })
+    
+  } catch (error: any) {
+    message.error(`重新分析失败: ${error.message || '未知错误'}`)
+  } finally {
+    reanalyzing.value = false
   }
 }
 
