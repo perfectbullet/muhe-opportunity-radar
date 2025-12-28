@@ -82,7 +82,7 @@ export const analyzeDocument = async (
  * 获取文档列表
  */
 export const getDocuments = async (): Promise<DocumentInfo[]> => {
-  const response = await apiClient.get<{ documents: DocumentInfo[]; total: number }>('/documents')
+  const response = await apiClient.get<{ documents: DocumentInfo[]; total: number }>('/documents/list')
   return response.documents
 }
 

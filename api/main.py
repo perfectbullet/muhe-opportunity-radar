@@ -27,9 +27,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # Vue3 开发环境
-        "http://localhost:5173",  # Vite 默认端口
-        "http://localhost:7860",  # Gradio 端口
+        "*"  # 允许所有来源访问，生产环境中请根据需要进行限制
     ],
     allow_credentials=True,
     allow_methods=["*"],

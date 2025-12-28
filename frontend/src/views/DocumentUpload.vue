@@ -13,7 +13,7 @@
             :on-before-upload="handleBeforeUpload"
             :on-finish="handleUploadFinish"
             :on-error="handleUploadError"
-            accept=".pdf,.docx,.doc,.md,.txt"
+            accept=".docx,.doc,.md,.txt"
             :show-file-list="false"
           >
             <n-upload-dragger>
@@ -26,7 +26,7 @@
                 点击或拖拽文件到此区域上传
               </n-text>
               <n-p depth="3" style="margin: 8px 0 0 0">
-                支持 PDF、Word、Markdown 格式，最大 10MB
+                支持 Word、Markdown 格式，最大 10MB
               </n-p>
             </n-upload-dragger>
           </n-upload>
